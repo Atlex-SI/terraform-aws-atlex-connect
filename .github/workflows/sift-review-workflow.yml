@@ -1,29 +1,40 @@
 # Ported from atlas@atlex-source-v1:.github/workflows/sift-review-workflow.yml
 name: Sift PR Review
 
-# ── PAUSED: no automatic runs ───────────────────────────────────────────────────────────────
-#
-# Every automatic trigger below is commented out, and `workflow_dispatch` is left as the only live
-# one. GitHub requires a non-empty `on:` block, so a workflow with all its triggers removed is
-# INVALID and fails to parse - which produces the same failure emails this is meant to stop.
-# Leaving dispatch keeps the file valid and keeps the workflow runnable by hand from the Actions
-# tab, on any branch, whenever there are minutes to spend.
-#
-# Why: the Actions allowance is exhausted, so every push was starting jobs that could only fail and
-# mail about it. Commented rather than deleted - the jobs below are the quality gate and the release
-# pipeline, and re-enabling them is uncommenting the trigger, not rebuilding them from scratch.
-#
-# Local equivalent while this is off: `pnpm run check` runs the same format, lint, typecheck and
-# test gate CI does, and `bash scripts/deploy.sh` runs the same ordered deploy Release does.
+# Sift reviews every pull request. The `gate` job checks that this repo has its SIFT_* secrets
+# (GitHub Free org secrets do not reach private repos, so each repo sets its own). Without them the
+# review is skipped with a notice instead of failing, so a new repo is never blocked on Sift setup.
+# A job that calls a reusable workflow cannot read `secrets` in its own `if:`, hence the extra job.
 
 on:
-  # pull_request:
-  # types: [opened, reopened, synchronize]
-
-  # The only live trigger: manual, from the Actions tab.
+  pull_request:
+    types: [opened, reopened, synchronize]
   workflow_dispatch: {}
+
+concurrency:
+  group: sift-review-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.secrets.outputs.enabled }}
+    steps:
+      - id: secrets
+        env:
+          SIFT_API_KEY: ${{ secrets.SIFT_API_KEY }}
+        run: |
+          if [ -n "$SIFT_API_KEY" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice title=Sift review skipped::SIFT_* secrets are not set in this repo yet."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
   sift:
+    needs: gate
+    if: needs.gate.outputs.enabled == 'true'
     permissions:
       contents: read
       pull-requests: write

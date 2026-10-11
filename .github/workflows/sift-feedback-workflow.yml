@@ -1,28 +1,34 @@
 # Ported from atlas@atlex-source-v1:.github/workflows/sift-feedback-workflow.yml
 name: Sift Feedback
-# ── PAUSED: no automatic runs ───────────────────────────────────────────────────────────────
-#
-# Every automatic trigger below is commented out, and `workflow_dispatch` is left as the only live
-# one. GitHub requires a non-empty `on:` block, so a workflow with all its triggers removed is
-# INVALID and fails to parse - which produces the same failure emails this is meant to stop.
-# Leaving dispatch keeps the file valid and keeps the workflow runnable by hand from the Actions
-# tab, on any branch, whenever there are minutes to spend.
-#
-# Why: the Actions allowance is exhausted, so every push was starting jobs that could only fail and
-# mail about it. Commented rather than deleted - the jobs below are the quality gate and the release
-# pipeline, and re-enabling them is uncommenting the trigger, not rebuilding them from scratch.
-#
-# Local equivalent while this is off: `pnpm run check` runs the same format, lint, typecheck and
-# test gate CI does, and `bash scripts/deploy.sh` runs the same ordered deploy Release does.
+
+# Reports each closed PR's outcome back to Sift so its reviews learn. Gated on the repo's SIFT_*
+# secrets exactly like sift-review-workflow.yml.
 
 on:
-  # pull_request:
-  # types: [closed]
-
-  # The only live trigger: manual, from the Actions tab.
+  pull_request:
+    types: [closed]
   workflow_dispatch: {}
+
 jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.secrets.outputs.enabled }}
+    steps:
+      - id: secrets
+        env:
+          SIFT_API_KEY: ${{ secrets.SIFT_API_KEY }}
+        run: |
+          if [ -n "$SIFT_API_KEY" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice title=Sift feedback skipped::SIFT_* secrets are not set in this repo yet."
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
   feedback:
+    needs: gate
+    if: needs.gate.outputs.enabled == 'true'
     uses: sahilsaleem2907/sift/.github/workflows/sift-feedback.yml@master
     with:
       repository: ${{ github.repository }}
