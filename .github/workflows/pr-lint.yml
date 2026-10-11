@@ -1,0 +1,30 @@
+name: PR lint
+
+# The PR title must carry the Jira story key (KAN-<n>) so Jira links the PR back to its story
+# (TB-29). Runs on `edited` too, so fixing the title re-runs only this check.
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+concurrency:
+  group: pr-lint-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  pr-lint:
+    name: PR title has a KAN key
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the PR title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          if printf '%s' "$TITLE" | grep -Eq '(^|[^A-Za-z0-9])KAN-[0-9]+([^0-9]|$)'; then
+            echo "PR title carries a KAN key."
+          else
+            echo "::error title=Missing KAN key::PR title must contain a Jira story key, e.g. 'feat(db): port withOrgScope (KAN-12)'."
+            exit 1
+          fi
