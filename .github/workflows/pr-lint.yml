@@ -1,7 +1,9 @@
 name: PR lint
 
-# The PR title must carry the Jira story key (KAN-<n>) so Jira links the PR back to its story
-# (TB-29). Runs on `edited` too, so fixing the title re-runs only this check.
+# Two checks on every PR:
+# - the title carries the Jira story key (KAN-<n>), so Jira links the PR back to its story (TB-29);
+# - neither the PR body nor any commit message carries AI attribution (standards C3, KAN-16).
+# Runs on `edited` too, so fixing the title or body re-runs only this check.
 
 on:
   pull_request:
@@ -11,11 +13,13 @@ concurrency:
   group: pr-lint-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
-permissions: {}
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
   pr-lint:
-    name: PR title has a KAN key
+    name: PR lint
     runs-on: ubuntu-latest
     steps:
       - name: Check the PR title
@@ -28,3 +32,29 @@ jobs:
             echo "::error title=Missing KAN key::PR title must contain a Jira story key, e.g. 'feat(db): port withOrgScope (KAN-12)'."
             exit 1
           fi
+
+      - name: Check for AI attribution
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BODY: ${{ github.event.pull_request.body }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          # Same pattern as scripts/agent-hooks/no-ai-attribution.py; keep the two in step.
+          pattern='co-authored-by:.*(claude|anthropic|openai|codex|copilot|chatgpt)|generated (with|by) \[?(claude|codex|chatgpt|copilot)|noreply@anthropic\.com'
+          failed=0
+          if hits=$(printf '%s\n' "$BODY" | grep -Ein "$pattern"); then
+            echo "::error title=AI attribution in the PR body::Remove it (standards C3). Lines: $(printf '%s' "$hits" | tr '\n' ' ')"
+            failed=1
+          fi
+          # One line per commit-message line, prefixed with the short SHA.
+          messages=$(gh api "repos/$REPO/pulls/$PR/commits" --paginate \
+            --jq '.[] | .sha[0:7] as $sha | .commit.message | split("\n")[] | "\($sha) \(.)"')
+          if hits=$(printf '%s\n' "$messages" | grep -Ei "$pattern"); then
+            echo "::error title=AI attribution in commits::Reword these commits (standards C3): $(printf '%s' "$hits" | tr '\n' ' ')"
+            failed=1
+          fi
+          if [ "$failed" -eq 0 ]; then
+            echo "No AI attribution in the PR body or commits."
+          fi
+          exit "$failed"
