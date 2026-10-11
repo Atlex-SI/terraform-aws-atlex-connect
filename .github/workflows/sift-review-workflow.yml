@@ -1,0 +1,57 @@
+# Ported from atlas@atlex-source-v1:.github/workflows/sift-review-workflow.yml
+name: Sift PR Review
+
+# ── PAUSED: no automatic runs ───────────────────────────────────────────────────────────────
+#
+# Every automatic trigger below is commented out, and `workflow_dispatch` is left as the only live
+# one. GitHub requires a non-empty `on:` block, so a workflow with all its triggers removed is
+# INVALID and fails to parse - which produces the same failure emails this is meant to stop.
+# Leaving dispatch keeps the file valid and keeps the workflow runnable by hand from the Actions
+# tab, on any branch, whenever there are minutes to spend.
+#
+# Why: the Actions allowance is exhausted, so every push was starting jobs that could only fail and
+# mail about it. Commented rather than deleted - the jobs below are the quality gate and the release
+# pipeline, and re-enabling them is uncommenting the trigger, not rebuilding them from scratch.
+#
+# Local equivalent while this is off: `pnpm run check` runs the same format, lint, typecheck and
+# test gate CI does, and `bash scripts/deploy.sh` runs the same ordered deploy Release does.
+
+on:
+  # pull_request:
+  # types: [opened, reopened, synchronize]
+
+  # The only live trigger: manual, from the Actions tab.
+  workflow_dispatch: {}
+jobs:
+  sift:
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: sahilsaleem2907/sift/.github/workflows/sift-review.yml@master
+    with:
+      repository: ${{ github.repository }}
+      pr_number: ${{ github.event.pull_request.number }}
+      before_sha: ${{ github.event.before }}
+      auth_mode: installation_id
+    secrets:
+      SIFT_IMAGE: ${{ secrets.SIFT_IMAGE }}
+      SIFT_DATABASE_URL: ${{ secrets.SIFT_DATABASE_URL }}
+      SIFT_API_KEY: ${{ secrets.SIFT_API_KEY }}
+      SIFT_LLM_MODEL: ${{ secrets.SIFT_LLM_MODEL }}
+      SIFT_LLM_API_KEY: ${{ secrets.SIFT_LLM_API_KEY }}
+      SIFT_LLM_API_BASE: ${{ secrets.SIFT_LLM_API_BASE }}
+      SIFT_REVIEW_EFFORT: ${{ secrets.SIFT_REVIEW_EFFORT }}
+      SIFT_REVIEW_MODEL: ${{ secrets.SIFT_REVIEW_MODEL }}
+      SIFT_REVIEW_MODEL_KEY: ${{ secrets.SIFT_REVIEW_MODEL_KEY }}
+      SIFT_REVIEW_MODEL_BASE_URL: ${{ secrets.SIFT_REVIEW_MODEL_BASE_URL }}
+      SIFT_INSTALLATION_ID: ${{ secrets.SIFT_INSTALLATION_ID }}
+      GITHUB_WEBHOOK_SECRET: ${{ secrets.GITHUB_WEBHOOK_SECRET }}
+      SIFT_GITHUB_TOKEN: ${{ secrets.SIFT_GITHUB_TOKEN }}
+      SIFT_API_BACKEND_BASE_URL: ${{ secrets.SIFT_API_BACKEND_BASE_URL }}
+      SIFT_EMBEDDING_MODEL: ${{ secrets.SIFT_EMBEDDING_MODEL }}
+      SIFT_EMBEDDING_API_BASE: ${{ secrets.SIFT_EMBEDDING_API_BASE }}
+      SIFT_EMBEDDING_DIMENSION: ${{ secrets.SIFT_EMBEDDING_DIMENSION }}
+      SIFT_SEMGREP_ENABLED: ${{ secrets.SIFT_SEMGREP_ENABLED }}
+      SIFT_CODEQL_ENABLED: ${{ secrets.SIFT_CODEQL_ENABLED }}
+      SIFT_VECTOR_DB_ENABLED: ${{ secrets.SIFT_VECTOR_DB_ENABLED }}
+      SIFT_SMART_ROUTING_ENABLED: ${{ secrets.SIFT_SMART_ROUTING_ENABLED }}
