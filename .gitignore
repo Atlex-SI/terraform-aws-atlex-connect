@@ -13,3 +13,5 @@ override.tf.json
 terraform.rc
 .env
 .DS_Store
+# Coding standards cached by scripts/standards.sh (KAN-16).
+.standards/

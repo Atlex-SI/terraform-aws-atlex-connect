@@ -9,3 +9,14 @@ This is a stub. The full rules for every Atlex repo live in [`Atlex-SI/atlex` AG
 - **Merge rule (TB-24).** Green CI and the Sift review, then the author merges. Rebase-merge only.
 - **No more than 2 epics in flight** per founder.
 - **CI here is a placeholder.** EP07 (atlex-connect) replaces it with `terraform fmt -check` + `terraform validate`.
+
+## Before you code: standards
+
+The coding standards live in [`Atlex-SI/atlex` docs/standards/](https://github.com/Atlex-SI/atlex/tree/master/docs/standards). This repo loads **core + terraform**.
+
+- **Claude** gets them in context at session start: `.claude/settings.json` runs `scripts/standards.sh`, which fetches them with `gh` and caches them in the gitignored `.standards/`.
+- **Codex and any other agent:** run `scripts/standards.sh` and read its output before writing code.
+- If it prints a **WARNING**, tell the user. The usual fix is `gh auth login`.
+- **No AI attribution** in commits or PRs: a Claude hook (`scripts/agent-hooks/no-ai-attribution.py`) blocks it locally, and `pr-lint` fails it.
+- **Check a dependency before installing it:** a Claude hook (`scripts/agent-hooks/vuln-check.py`) checks OSV and the 14-day minimum age before `pnpm add`, `npm install`, `pip install` or `uv add`.
+- The hooks need `python3` (stdlib only); the standards loader needs `gh` signed in.
