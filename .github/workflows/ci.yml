@@ -20,3 +20,18 @@ jobs:
     steps:
       - name: Placeholder
         run: echo "Placeholder check. EP07 (atlex-connect) replaces it with terraform fmt -check + terraform validate."
+
+  tf-report:
+    name: atlex-tf-report
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # The oldest Python the script supports, and a current one.
+        python: ["3.9", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Tests
+        run: python3 -m unittest discover -s tf-report/tests -v

@@ -1,0 +1,16 @@
+{
+  "version": 4,
+  "terraform_version": "1.9.8",
+  "serial": 6,
+  "lineage": "4ca3ef1c-6d88-55ba-c448-b96d23377340",
+  "outputs": { "pw": { "value": "SECRET-db-pass-7f3a", "type": "string", "sensitive": true } },
+  "resources": [
+    {
+      "mode": "managed",
+      "type": "terraform_data",
+      "name": "web",
+      "provider": "provider[\"terraform.io/builtin/terraform\"]",
+      "instances": [{ "index_key": 0, "attributes": { "input": { "password": "SECRET-db-pass-7f3a" } } }]
+    }
+  ]
+}

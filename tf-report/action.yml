@@ -1,0 +1,55 @@
+name: atlex-tf-report
+description: >-
+  Send Atlex a Terraform workspace's applied state, stripped on this runner to each managed
+  resource's identity. Nothing the state marks sensitive leaves the runner.
+author: Atlex
+
+inputs:
+  connection-id:
+    description: The Terraform connection's ID, from the Atlex connect screen.
+    required: true
+  secret:
+    description: The connection's tf-report secret. Pass it from your secret store, e.g. secrets.ATLEX_TF_REPORT_SECRET.
+    required: true
+  working-directory:
+    description: The root module's folder, where `terraform apply` ran.
+    required: false
+    default: "."
+  terraform:
+    description: The binary to run, `terraform` or `tofu`. It must already be set up and initialised.
+    required: false
+    default: terraform
+  workspace:
+    description: The workspace. Defaults to `terraform workspace show`.
+    required: false
+    default: ""
+  endpoint:
+    description: Where to send it. Leave the default unless Atlex tells you otherwise.
+    required: false
+    default: https://hooks.atlex.si/hooks/terraform
+  dry-run:
+    description: "`true` prints the payload and sends nothing."
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Report the applied state to Atlex
+      shell: bash
+      # Inputs reach the script as environment variables, never interpolated into the command, so
+      # no input can change what runs.
+      env:
+        ATLEX_CONNECTION_ID: ${{ inputs.connection-id }}
+        ATLEX_TF_REPORT_SECRET: ${{ inputs.secret }}
+        ATLEX_ENDPOINT: ${{ inputs.endpoint }}
+        INPUT_WORKING_DIRECTORY: ${{ inputs.working-directory }}
+        INPUT_TERRAFORM: ${{ inputs.terraform }}
+        INPUT_WORKSPACE: ${{ inputs.workspace }}
+        INPUT_DRY_RUN: ${{ inputs.dry-run }}
+      run: |
+        set -euo pipefail
+        args=(--chdir "$INPUT_WORKING_DIRECTORY" --terraform "$INPUT_TERRAFORM")
+        if [ -n "$INPUT_WORKSPACE" ]; then args+=(--workspace "$INPUT_WORKSPACE"); fi
+        if [ "$INPUT_DRY_RUN" = "true" ]; then args+=(--dry-run); fi
+        python3 "$GITHUB_ACTION_PATH/atlex_tf_report.py" "${args[@]}"

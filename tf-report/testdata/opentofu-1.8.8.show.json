@@ -1,0 +1,97 @@
+{
+  "format_version": "1.0",
+  "terraform_version": "1.8.8",
+  "values": {
+    "outputs": { "pw": { "sensitive": true, "value": "SECRET-db-pass-7f3a", "type": "string" } },
+    "root_module": {
+      "resources": [
+        {
+          "address": "terraform_data.single",
+          "mode": "managed",
+          "type": "terraform_data",
+          "name": "single",
+          "provider_name": "terraform.io/builtin/terraform",
+          "schema_version": 0,
+          "values": {
+            "id": "c6ad4cee-db7e-5753-af0a-6d7a84c1a347",
+            "input": "plain",
+            "output": "plain",
+            "triggers_replace": null
+          },
+          "sensitive_values": {}
+        },
+        {
+          "address": "terraform_data.web[0]",
+          "mode": "managed",
+          "type": "terraform_data",
+          "name": "web",
+          "index": 0,
+          "provider_name": "terraform.io/builtin/terraform",
+          "schema_version": 0,
+          "values": {
+            "id": "b2083e56-4ecf-e93d-1898-3edfd84ecb0b",
+            "input": { "name": "web-0", "password": "SECRET-db-pass-7f3a" },
+            "output": { "name": "web-0", "password": "SECRET-db-pass-7f3a" },
+            "triggers_replace": null
+          },
+          "sensitive_values": { "input": { "password": true }, "output": {} }
+        },
+        {
+          "address": "terraform_data.web[1]",
+          "mode": "managed",
+          "type": "terraform_data",
+          "name": "web",
+          "index": 1,
+          "provider_name": "terraform.io/builtin/terraform",
+          "schema_version": 0,
+          "values": {
+            "id": "87480ac5-9bad-391d-fd9e-e12349386fd2",
+            "input": { "name": "web-1", "password": "SECRET-db-pass-7f3a" },
+            "output": { "name": "web-1", "password": "SECRET-db-pass-7f3a" },
+            "triggers_replace": null
+          },
+          "sensitive_values": { "input": { "password": true }, "output": {} }
+        }
+      ],
+      "child_modules": [
+        {
+          "resources": [
+            {
+              "address": "module.q.terraform_data.jobs[\"a\"]",
+              "mode": "managed",
+              "type": "terraform_data",
+              "name": "jobs",
+              "index": "a",
+              "provider_name": "terraform.io/builtin/terraform",
+              "schema_version": 0,
+              "values": {
+                "id": "9102d20c-2f45-64b3-2e45-f7f47ad546b2",
+                "input": "a",
+                "output": "a",
+                "triggers_replace": null
+              },
+              "sensitive_values": {}
+            },
+            {
+              "address": "module.q.terraform_data.jobs[\"b\"]",
+              "mode": "managed",
+              "type": "terraform_data",
+              "name": "jobs",
+              "index": "b",
+              "provider_name": "terraform.io/builtin/terraform",
+              "schema_version": 0,
+              "values": {
+                "id": "000ddd5c-3e70-e21d-fc2c-e10d7fd39990",
+                "input": "b",
+                "output": "b",
+                "triggers_replace": null
+              },
+              "sensitive_values": {}
+            }
+          ],
+          "address": "module.q"
+        }
+      ]
+    }
+  }
+}

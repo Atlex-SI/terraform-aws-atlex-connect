@@ -1,0 +1,78 @@
+{
+  "format_version": "1.0",
+  "terraform_version": "1.9.8",
+  "values": {
+    "outputs": { "db_password": { "sensitive": true, "value": "SECRET-db-pass-7f3a" } },
+    "root_module": {
+      "resources": [
+        {
+          "address": "aws_s3_bucket.assets",
+          "mode": "managed",
+          "type": "aws_s3_bucket",
+          "name": "assets",
+          "provider_name": "registry.terraform.io/hashicorp/aws",
+          "schema_version": 0,
+          "values": { "arn": "arn:aws:s3:::checkout-assets", "id": "checkout-assets", "bucket": "checkout-assets", "tags": { "team": "payments" } },
+          "sensitive_values": { "tags": {} }
+        },
+        {
+          "address": "aws_db_instance.main",
+          "mode": "managed",
+          "type": "aws_db_instance",
+          "name": "main",
+          "provider_name": "registry.terraform.io/hashicorp/aws",
+          "schema_version": 2,
+          "values": { "arn": "arn:aws:rds:eu-west-1:111122223333:db:main", "id": "db-ABC", "password": "SECRET-db-pass-7f3a", "username": "admin" },
+          "sensitive_values": { "password": true }
+        },
+        {
+          "address": "aws_iam_access_key.ci",
+          "mode": "managed",
+          "type": "aws_iam_access_key",
+          "name": "ci",
+          "provider_name": "registry.terraform.io/hashicorp/aws",
+          "schema_version": 0,
+          "values": { "id": "AKIAEXAMPLEKEYID0000", "secret": "SECRET-db-pass-7f3a", "user": "ci" },
+          "sensitive_values": { "secret": true }
+        },
+        {
+          "address": "aws_instance.legacy",
+          "mode": "managed",
+          "type": "aws_instance",
+          "name": "legacy",
+          "provider_name": "registry.terraform.io/hashicorp/aws",
+          "schema_version": 1,
+          "values": { "arn": "SECRET-db-pass-7f3a", "id": "i-0abc", "user_data": "SECRET-db-pass-7f3a" },
+          "sensitive_values": { "arn": true, "user_data": true }
+        },
+        {
+          "address": "data.aws_caller_identity.current",
+          "mode": "data",
+          "type": "aws_caller_identity",
+          "name": "current",
+          "provider_name": "registry.terraform.io/hashicorp/aws",
+          "schema_version": 0,
+          "values": { "account_id": "111122223333", "arn": "arn:aws:iam::111122223333:user/ci" },
+          "sensitive_values": {}
+        }
+      ],
+      "child_modules": [
+        {
+          "address": "module.api",
+          "resources": [
+            {
+              "address": "module.api.aws_lambda_function.handler",
+              "mode": "managed",
+              "type": "aws_lambda_function",
+              "name": "handler",
+              "provider_name": "registry.terraform.io/hashicorp/aws",
+              "schema_version": 0,
+              "values": { "arn": "arn:aws:lambda:eu-west-1:111122223333:function:checkout", "environment": [{ "variables": { "DB_PASSWORD": "SECRET-db-pass-7f3a" } }] },
+              "sensitive_values": { "environment": [{ "variables": true }] }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
