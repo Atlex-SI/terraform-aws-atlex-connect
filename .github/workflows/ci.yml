@@ -24,14 +24,15 @@ jobs:
   tf-report:
     name: atlex-tf-report
     runs-on: ubuntu-latest
+    # The official Python image, not setup-python: hosted runners drop builds of older versions, and
+    # the oldest one the script supports is the one worth testing.
+    container: python:${{ matrix.python }}-slim
     strategy:
+      fail-fast: false
       matrix:
         # The oldest Python the script supports, and a current one.
         python: ["3.9", "3.13"]
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python }}
       - name: Tests
         run: python3 -m unittest discover -s tf-report/tests -v
